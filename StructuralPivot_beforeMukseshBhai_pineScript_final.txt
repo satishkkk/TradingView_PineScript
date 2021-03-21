@@ -1,0 +1,65 @@
+// This source code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © satishkathiriya99
+
+//@version=4
+study("Structural Pivot M", shorttitle="Structural Pivot", format=format.price, precision=0, overlay=true)
+// Define "n" as the number of periods and keep a minimum value of 2 for error handling.
+n = input(title="Periods", defval=2, minval=2, type=input.integer)
+
+
+// Up TO Down Trend Reveresal
+bool trendReversalUpToDown = false
+trendReversalUpToDown := ((high[1] < high[2]) and (high[3] < high[2]))
+upFractal = (trendReversalUpToDown )
+
+
+// Down TO Up Trend Reveresal
+bool trendReversalDownToUp = false
+trendReversalDownToUp := ((low[1] > low[2]) and (low[3] > low[2]))
+downFractal = (trendReversalDownToUp )
+
+//combine all the trend 
+// 0 -> No trend
+// 1 -> down to up trend
+// 2 -> up to down trend
+// 3 -> both 1 and 2 trend at same 
+// int combineTrendReversal = 0
+// combineTrendReversal := trendReversalDownToUp ? 1 : trendReversalUpToDown ? 2 : 0
+// combineTrendReversal := (trendReversalDownToUp and trendReversalUpToDown) ? 3 : combineTrendReversal
+
+// calculate previous up and previous down 
+previousUp1 = valuewhen(trendReversalUpToDown, bar_index , 0)
+previousUp2 = valuewhen(trendReversalUpToDown, bar_index , 1)
+
+
+// plot(trendReversalDownToUp ? 34000 : 37000 ,  title='trendReversalUpToDown', color=color.fuchsia)
+plot(bar_index+27000, title='bar_index', color=color.white)
+plot(previousUp1+27000, title='previousUp1', color=color.white)
+plot(previousUp2+27000, title='previousUp2', color=color.white)
+
+gapBetweenUp = previousUp1-previousUp2
+plot(gapBetweenUp+35100, title='gapBetweenUp', color=color.white)
+previousDown = valuewhen(trendReversalDownToUp, bar_index-2 , 0)
+gapBetweenDown = bar_index-previousDown
+
+bool tempsph = false
+
+if (abs(gapBetweenUp) >= 2)
+    for i = 1+2 to gapBetweenUp+2 by 1
+        for j=i+1 to gapBetweenUp+3 by 1
+            tempsph:=( (high[2] >= high[2+i]) and (high[2+i] >= high[2+j]) ) ? true : tempsph
+            
+plot(tempsph ? 1+35100 : 35000, title='tempsph', color=color.white)
+bool sph = tempsph and trendReversalUpToDown
+
+plotshape(downFractal, style=shape.triangledown, location=location.belowbar, offset=-2, color=color.maroon, transp=0, size = size.small,title = "downFractal")
+plotshape(upFractal, style=shape.triangleup,   location=location.abovebar,offset=-2, color=color.olive,  transp=0, size = size.small,title = "upFractal")
+plotshape(sph, style=shape.xcross,   location=location.abovebar,offset=-2, color=color.black,  transp=0, size = size.small,title = "sph")
+
+// id = label.new(x=bar_index,y=low+3000,style=label.style_none,color=color.yellow,textcolor= color.black)
+// label.set_text(id=id, text=tostring(gapBetweenUp) )
+
+
+// id1 = label.new(x=bar_index,y=high+3000,style=label.style_cross,color=color.maroon,textcolor= color.maroon)
+// label.set_text(id=id1, text=tempsph ? "true" :"false" )
+

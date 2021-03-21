@@ -1,0 +1,110 @@
+// This source code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © satishkathiriya99
+
+//@version=4
+study("Structural Pivot M", shorttitle="Structural Pivot", format=format.price, precision=0, overlay=true,max_labels_count=500)
+n = input(title="Periods", defval=20, minval=2, type=input.integer)
+
+int tempSPHIndex = 0
+//insted of n-1 take minimum of previous tempSPHIndex and n-1
+for i=1 to n-1 by 1
+    if ((high[i] > high[i-1]) and (high[i] > high[i+1]))
+        if(bar_index-bar_index[i] >= 2)
+            tempSPHIndex := bar_index-i
+            break
+
+id = label.new(x=bar_index,y=high+500,style=label.style_none,color=color.green,textcolor= color.black)
+label.set_text(id=id, text=tostring(tempSPHIndex) )
+
+gapBetweenTempSPHAndBar = nz(bar_index-tempSPHIndex)
+
+// id1 = label.new(x=bar_index,y=high,style=label.style_none,color=color.green,textcolor= color.black)
+// label.set_text(id=id1, text=tostring(gapBetweenTempSPHAndBar) )
+
+var sphOUT = array.new_int(5)
+bool condition = false
+if(gapBetweenTempSPHAndBar >= 2)
+    for i=1 to gapBetweenTempSPHAndBar-1 by 1
+        for j=i+1 to gapBetweenTempSPHAndBar by 1
+            // condition := array.get(a,0)[1] != tempSPHIndex ? true : false
+            // condition := tempSPHIndex[1] != tempSPHIndex ?  true : false
+            if( (high[j] > high[i]) and (high[i] > high[0]) and (close[j] > close[i]) and (close[i] > close[0]) )
+                array.push(sphOUT, tempSPHIndex)
+                // label.new(x=tempSPHIndex,y=high+1000,style=label.style_label_up,color=color.black,textcolor= color.black,text="sph")
+
+
+
+m = array.size(sphOUT)-1
+if(array.get(sphOUT, m) != array.get(sphOUT, m)[1])
+    label.new(x=array.get(sphOUT, m),y=high,style=label.style_triangleup,color=color.olive,textcolor= color.olive,text="sph",yloc=yloc.abovebar)
+
+plot(30000+array.get(sphOUT, m), title='lastIndexOfArray', color=color.red)
+plot(30000+array.get(sphOUT, m)[1], title='lastIndexOfArray-1', color=color.red)
+// plot(20000+m, title='arraySize', color=color.red)     
+// plot(25000+array.get(sphOUT, m-1), title='index', color=color.red)
+// plot(25000+array.get(sphOUT, m-2), title='Previousindex', color=color.red)
+// for i=m-1 to 1
+//     index = array.get(sphOUT, i)
+//     previousIndex = array.get(sphOUT, i-1)
+//     if(index != previousIndex)
+//         label.new(x=index,y=high+1000,style=label.style_label_up,color=color.black,textcolor= color.black,text="sph")
+    
+    
+// plot(bar_index+30000, title='bar_index', color=color.white)      
+// plot(tempSPHIndex+30000, title='tempSPHIndex', color=color.white)  
+// plot(gapBetweenTempSPHAndBar+37000, title='gapBetweenTempSPHAndBar', color=color.white)     
+// plot(condition? 36000+1:37000, title='condition', color=color.white)     
+
+
+// // Down TO Up Trend Reveresal
+// bool trendReversalDownToUp = false
+// trendReversalDownToUp := ((low[1] > low[2]) and (low[3] > low[2]))
+// downFractal = (trendReversalDownToUp )
+
+// //combine all the trend 
+// // 0 -> No trend
+// // 1 -> down to up trend
+// // 2 -> up to down trend
+// // 3 -> both 1 and 2 trend at same 
+// // int combineTrendReversal = 0
+// // combineTrendReversal := trendReversalDownToUp ? 1 : trendReversalUpToDown ? 2 : 0
+// // combineTrendReversal := (trendReversalDownToUp and trendReversalUpToDown) ? 3 : combineTrendReversal
+
+// // calculate previous up and previous down 
+// previousUp1 = valuewhen(trendReversalUpToDown, bar_index , 0)
+// previousUp2 = valuewhen(trendReversalUpToDown, bar_index , 1)
+
+
+// // plot(trendReversalDownToUp ? 34000 : 37000 ,  title='trendReversalUpToDown', color=color.fuchsia)
+// plot(bar_index+27000, title='bar_index', color=color.white)
+// plot(previousUp1+27000, title='previousUp1', color=color.white)
+// plot(previousUp2+27000, title='previousUp2', color=color.white)
+
+// gapBetweenUp = bar_index-previousUp1+2
+// plot(gapBetweenUp+35100, title='gapBetweenUp', color=color.white)
+// previousDown = valuewhen(trendReversalDownToUp, bar_index-2 , 0)
+// gapBetweenDown = bar_index-previousDown
+
+// bool sphCondition = false
+
+// if (abs(gapBetweenUp) >= 2)
+//     for i = 1 to gapBetweenUp-1 by 1
+//         for j=i+1 to gapBetweenUp by 1
+//             sphCondition:=( (high < high[i]) and (high[i] < high[j]) ) ? true : sphCondition
+
+// plot(sphCondition ? 1+35100 : 35000, title='sphCondition', color=color.white)
+// plot(trendReversalUpToDown ? 1+35100 : 35000, title='trendReversalUpToDown', color=color.white)
+
+// bool sph = sphCondition and trendReversalUpToDown
+
+// plotshape(downFractal, style=shape.triangledown, location=location.belowbar, offset=-2, color=color.maroon, transp=0, size = size.small,title = "downFractal")
+// plotshape(upFractal, style=shape.triangleup,   location=location.abovebar,offset=-2, color=color.olive,  transp=0, size = size.small,title = "upFractal")
+// plotshape(sph, style=shape.xcross,   location=location.abovebar,offset=-2, color=color.black,  transp=0, size = size.small,title = "sph")
+
+// // id = label.new(x=bar_index,y=low+3000,style=label.style_none,color=color.yellow,textcolor= color.black)
+// // label.set_text(id=id, text=tostring(gapBetweenUp) )
+
+
+// // id1 = label.new(x=bar_index,y=high+3000,style=label.style_cross,color=color.maroon,textcolor= color.maroon)
+// // label.set_text(id=id1, text=tempsph ? "true" :"false" )
+

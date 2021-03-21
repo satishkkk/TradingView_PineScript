@@ -1,0 +1,592 @@
+// dev 681
+
+//@version=4
+study("Pine Script - Lines & Labels", overlay=true, precision=4, max_labels_count=50, max_lines_count=50)
+
+// ---------------- OVERVIEW ----------------
+
+// WHAT ARE LINES & LABELS?
+// Lines and labels are two new features introduced with version 4 of pinescript.
+// These two new objects look similar to the built in drawing tools found in the charting library. 
+// If you were to draw a "Trend Line" object, that might resemble a line.
+// If you were to draw a "Callout" object, this might resemble a label.
+// Lines and Labels however, are not related to the manually drawn chart objects, and cannot be modified via mouse.
+
+// WHEN TO USE LINES & LABELS?
+// Generally lines would be used when you are trying to draw an advanced line and cannot do it with the plot function.
+// e.g., pivot points, support/resistance levels, zig zag lines
+// Labels are good for adding dynamic text to your chart. Currently, plot functions require a const string for the text, so you can't change the text dynamically.
+// When you use a label, you can update the text inside the code and change it accordingly, having it adapt to your conditions and display the information on your chart.
+// In contrast to indicator plots (plots are created with functions plot, plotshape, plotchar), 
+// lines and labels can be created on historical bars as well as in the future, where no bars exist yet.
+
+// HOW TO USE LINES & LABELS?
+// Lines & labels are unique in their own respect. 
+// They use an x-y coordinate system for required arguments.
+// Essentially, a line requires two x-y coordinates, which will represent the start and the end of line.
+// the label object only needs one x-y coordinate, because it is essentially a point. 
+// We will see their use in the examples below.
+
+
+// BOTTOM LINE
+// line and label drawings allow you to create indicators with more sophisticated visual components.
+
+
+
+                // ---------------- LABEL SYNTAX ----------------
+
+
+// CREATE A NEW LABEL
+// label.new(x, y, text, xloc, yloc, color, style, textcolor, size, textalign, tooltip) → series[label]
+// x = label x-axis (Required)
+// y = label y-axis (Required)
+// xloc = Modifier for x argument (Optional)
+// yloc = Modifier for y argument (Optional)
+// color = Color of label (Optional)
+// style = Style of line (Optional)
+// textcolor = Color of text (Optional)
+// size = Size of label (Optional)
+// textalign = How the text should be aligned (Optional)
+// tooltip = Hover over label for additional information (Optional)
+// returns a series[label] which can stored in an identifier and modified.
+
+
+
+                // ---------------- LABEL EXAMPLES ----------------
+
+
+// ****************** EXAMPLE 1 defaults ********************
+// i =input("")
+// label.new(x=bar_index, y=high, text=i)
+// label.new(x=time, y=high, text="", xloc=xloc.bar_time, yloc=yloc., color=color.blue, style=label.style_label_down)   // Same as first line.
+// label.new(x=bar_index, y=low, text="low")
+// ****************** EXAMPLE 1 END *****************
+
+// ****************** EXAMPLE 2 *********************
+// label.new(x=time, y=high, xloc=xloc.bar_time)    // This works just like the first example.
+// plot(time, title="Unix Time Per Bar")
+// plot(bar_index, title="Bar Index")
+// ****************** EXAMPLE 2 END *****************
+
+
+// ****************** EXAMPLE 3 Bar Selection *********************
+// NOTE: When the script starts the bar_index is 0, so if we try to draw a label on bar 168 without waiting for bar 168 to appear, we will get an index error from PS.
+// if barstate.isrealtime
+//     label.new(x=170, y=high, xloc=xloc.bar_index)
+// plot(bar_index, title="Bar index")
+// NOTE:If you want to plot a bar into the future, you need to use xloc.bar_time otherwise you get an error
+// ****************** EXAMPLE 3 END *****************
+
+
+// ****************** EXAMPLE 4 Offset Future *********************
+// oneBarOfTime = time - time[1]
+// plot(oneBarOfTime, title="One Bar of Time")
+// i_offset = input(5, "Offset")
+// labelOffset = i_offset * oneBarOfTime
+// label.new(x=time + labelOffset, y=high, xloc=xloc.bar_time)
+// ****************** EXAMPLE 3 END *****************
+
+
+// ****************** EXAMPLE 5a Single Future Wrong *********************
+// if barstate.islast
+//     offset = 5 *(time - time[1])
+//     label.new(x=time+offset, y=high, xloc=xloc.bar_time, text="Data" )
+// ****************** EXAMPLE 5 END *****************
+
+// NOTE: We need to remove the previous label, and the only way to do that is to create a reference we can modify.
+// In our previous examples we didn't have to remove any labels because PS has does this automatically for us after drawing about 50 objects.
+// ****************** EXAMPLE 5b Single Future Right *********************
+// offset = 5 *(time - time[1])
+// id = label.new(x=time+offset, y=high, xloc=xloc.bar_time, text="Data" )  // Draw a new label
+// label.delete(id[1])     √√// Delete last label
+// ****************** EXAMPLE 5 END *****************
+
+
+// ****************** EXAMPLE 5c Single Future Right Method 2 *********************
+// var label id = na
+// label.delete(id)                // Delete current label. If label is na delete does nothing.
+// offset = 5 * (time - time[1])
+// id := label.new(x=time+offset, y=high, xloc=xloc.bar_time, text="Data" )   // Draw a new label
+// ****************** EXAMPLE 5 END *****************
+
+// ****************** EXAMPLE 5e Single Future Right Method 3 USING Setters  *********************
+// offset = 5 * (time - time[1])
+// var label id = label.new(x=time+offset, y=high, xloc=xloc.bar_time, text="Data" ) 
+// label.set_x(id, x=time+offset)
+// label.set_y(id, y=high)
+// ****************** EXAMPLE 5 END *****************
+
+
+
+                // --------- LABEL USE CASE - Dynam1c T3xt ---------
+// One of the most powerful features of labels is the use of dynamic text. 
+// This will allow us to display values on the chart as they are mutated across our code.
+// We can use this for debugging and building real-time data dashboards.
+
+
+// ****************** CORE FOR EXAMPLES *********************
+
+// var label id = na
+// label.delete(id)   // Delete last label
+// i_offsetLabel = input(5, "Data Dashboard Offset") 
+
+// offset = i_offsetLabel * (time - time[1])
+// dynamicText = "========== Data Dashboard ========="
+// id := label.new(x=time+offset, y=high, xloc=xloc.bar_time, text=dynamicText)
+// ***************************************
+
+// Now lets update our dynamictext the wrong way
+// ***************************************
+// dynamicText := "UPDATE"
+// label.set_text(id=id, text=dynamicText)
+// ***************************************
+
+// Now lets update our dynamictext the right way
+// ***************************************
+// dynamicText := dynamicText + "\n" + "UPDATE"
+// label.set_text(id=id, text=dynamicText)
+// ***************************************
+
+// We can even use numbers in our dynamicText
+// but we need to make sure to convert them to a string first. 
+// How do we do that?
+// ***************************************
+// dynamicText := dynamicText + "\nClose: " + tostring(close)
+// label.set_text(id=id, text=dynamicText)
+// ***************************************
+
+// Of course we can use computed variables too!
+// ***************************************
+// rsi = rsi(close, 14) 
+// dynamicText := dynamicText + "\nRSI: " + tostring(rsi)
+// label.set_text(id=id, text=dynamicText)
+// ***************************************
+
+// Sometimes we may need to round our numbers
+// https://www.pinecoders.com/faq_and_code/#how-can-i-round-the-decimals-displayed-with-my-scripts-values
+// ***************************************
+// f_round( _val, _decimals) => 
+//     // Rounds _val to _decimals places.
+//     _p = pow(10, _decimals)
+//     round(abs(_val) * _p) / _p * sign(_val)
+// rsi = rsi(close, 14)
+// dynamicText := dynamicText + "\nRSI: " + tostring(f_round(rsi, 2))
+// label.set_text(id=id, text=dynamicText)
+// ***************************************
+
+// If we want to convert booleans we can't use tostring() 
+// ***************************************
+// myBool = true
+// // dynamicText := dynamicText + "\nDashboard is on: " + tostring(myBool) // ERROR
+// dynamicText := dynamicText + "\nMyBool is on: " +  (myBool ? "True" : "False")
+// label.set_text(id=id, text=dynamicText)
+// ***************************************
+
+
+
+                // ---------------- LABEL SETTERS & GETTERS ----------------
+// Setters --  Methods that set a value to a specified label
+// label.set_color()     — changes color of label
+// label.set_size()      — changes size of label
+// label.set_style()     — changes style of label
+// label.set_text()      — changes text of label
+// label.set_textcolor() — changes color of text
+// label.set_x()         — changes x-coordinate of label
+// label.set_y()         — changes y-coordinate of label
+// label.set_xy()        — changes both x and y coordinates of label
+// label.set_xloc()      — changes x-location of label
+// label.set_yloc()      — changes y-location of label
+// label.set_tooltip()   — changes tooltip of label
+
+// Getters -- Methods that Return a value from the specified label
+// label.get_text()      - returns the text of label
+// label.get_x()         - returns UNIX time or bar_index of labels position
+// label.get_y()         - returns the price of labels position
+
+
+// ****************** CORE FOR EXAMPLES *********************
+// i_offsetLabel = input(5, "Data Dashboard Offset")
+// offset = i_offsetLabel * (time - time[1])
+// title = "Data Dashboard", splitter = "----------------------------------------------", nl = "\n"
+
+// string dynamicText = title + nl + splitter + nl
+// var label id = na
+// label.delete(id)   // Delete last label
+// id := label.new(x=time+offset, y=high, xloc=xloc.bar_time, text=dynamicText)
+
+// // // Lets make a cool dashboard with some components
+// i_lookback   = input(100, "Lookback Period")
+// i_showStats  = input(true, "Show Statistics")
+// i_showMoms   = input(true, "Show Momentum Oscillators")
+// i_showVolume = input(true, "Show Volume Stuff")
+// i_showSignal = input(true, "Show Signals")
+
+// f_round( _val, _decimals) => 
+//     // Rounds _val to _decimals places.
+//     if _decimals == -1
+//         _val
+//     else
+//         _p = pow(10, _decimals)
+//         round(abs(_val) * _p) / _p * sign(_val)
+
+// f_strHelp(_prefix, _var, _round) =>
+//     _res = tostring(f_round(_var, _round))
+//     _prefix + ": " + _res + nl
+
+// // // Statistics Section
+// statsTitle = splitter + nl + "Statistics" + nl + nl
+// std  = stdev(close, i_lookback)
+// mean = sma(close, i_lookback)
+// max  = highest(high, i_lookback)
+// min  = lowest(low, i_lookback)
+// stats = i_showStats ? statsTitle + f_strHelp("Stdev", std, -1) + f_strHelp("Mean", mean, -1) + f_strHelp("Local Max", max, -1) + f_strHelp("Local Min", min, -1) : na
+
+// // // Momentum Section
+// momsTitle = splitter + nl + "Momentum" + nl + nl
+// rsi = rsi(close, 14)
+// cci = cci(close, 20)
+// mom = mom(close, 10)
+// mfi = mfi(close, 5)
+// moms = i_showMoms ? momsTitle + f_strHelp("RSI", rsi, 1) + f_strHelp("CCI", cci, 1 ) + f_strHelp("MOM", mom,1) + f_strHelp("MFI", mfi,1) : na
+
+// // // Volatility & Volume Section
+// volTitle = splitter + nl + "Volume & Volatility" + nl + nl
+// atr    = atr(14)
+// avgVol = sma(volume, i_lookback)
+// vols = i_showVolume ? volTitle + f_strHelp("ATR", atr,-1) + f_strHelp("Average Volume", avgVol,-1) : na
+
+// // // Signals
+// sigTitle = splitter + nl + "Signals" + nl + nl
+// [macd, macdsignal, macdhist] = macd(close, fastlen=12, slowlen=26, siglen=9)
+// trend = macdhist > 0 ? "Bullish 📈" : "Bearish 📉" 
+// sigs = i_showSignal ? sigTitle + "Trend: " + trend + nl : na
+
+// // dynamicText := dynamicText + stats +  moms + vols + sigs
+// dynamicText := dynamicText +stats +moms + vols +sigs
+// label.set_text(id, text=dynamicText)
+// // ***************************************
+
+
+
+// // Let's style up the dashboard with some setters
+// // https://www.tradingview.com/pine-script-docs/en/v4/essential/Drawings.html#label-styles
+// // ***************************************
+// label.set_textalign(id, text.align_left)
+// label.set_color(id, color=color.black)
+// label.set_textcolor(id, textcolor=color.white)
+// label.set_style(id, label.style_label_left)
+// // ***************************************
+
+// // Lets use a getter to change the text
+// // ***************************************
+// labelText = label.get_text(id)
+// labelText := str.replace_all(labelText, "Data", "8")
+// label.set_text(id, labelText)  // Change the text to new text
+// label.set_tooltip(id, tooltip=stats)    // Take what we swapped out and move it to a tooltip
+// // ***************************************
+
+// // Lets use a getter to change the background and text
+// // ***************************************
+// if trend == "Bullish 📈"
+//     labelText := label.get_text(id)
+//     labelText := str.replace_all(labelText, splitter, "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
+//     label.set_text(id, labelText)  // Change the text to new text
+//     label.set_color(id, color.green)
+// ***************************************
+
+
+// LABEL HIGHLIGHTS
+// Labels are limited to around 500 labels at any one time. (Default is 50. To set a higher limit see max_lines_count in study() declaration)
+// Labels can display Dynamic Text.
+// Labels are great for displaying lots of complex data.
+
+
+
+
+
+
+
+
+
+
+
+ 
+                // ---------------- LINE SYNTAX ----------------
+
+// CREATE A NEW LINE
+// line.new(x1, y1, x2, y2, xloc, extend, color, style, width) → series[line]
+// x1 = line start x-axis (Required)
+// y1 = line start y-axis (Required)
+// x2 = line end x-axis   (Required)
+// y2 = line end y-axis   (Required)
+// xloc = Modifier for x arguments (Optional)
+// extend = Ray like functionality (Optional)
+// color = Color of line (Optional)
+// style = Style of line (Optional)
+// width = width of line (Optional)
+// returns a series[line] which can stored in an identifier and modified.
+
+ 
+ 
+ 
+                 // ---------------- LINE EXAMPLES ----------------
+
+
+// Notice how if we uncommment both of these statements the length of lines shown decreases. Because we are limited to approximately 50 total objects lines AND labels
+// ****************** EXAMPLE 1 DEFAULTS ********************
+// line.new(x1=bar_index[1], y1=high[1], x2=bar_index, y2=high)  // Identical to plot(high)
+// line.new(x1=bar_index[1], y1=low[1], x2=bar_index, y2=low)  // Identical to plot(low)
+// plot(low)
+// ****************** EXAMPLE 1 END *****************
+
+
+// ****************** EXAMPLE 2 XLOC BAR TIME *********************
+// line.new(x1=time[1], y1=high[1], x2=time, y2=high, xloc=xloc.bar_time)    // This works just like the first example.
+// ****************** EXAMPLE 2 END *****************
+
+// ****************** EXAMPLE 3 Reverse *********************
+// line.new(x1=time, y1=high, x2=time[1], y2=high[1], xloc=xloc.bar_time)    // This is identical to example 2
+// ****************** EXAMPLE 3 END *****************
+
+// ****************** EXAMPLE 4 Bar Selection *********************
+// NOTE: When the script starts the bar_index is 0, so if we try to draw a label on bar 168 without waiting for bar 168 to appear, we will get an index error from PS.
+// max_bars_back(time, 4999)    // We need this setting to fix the buffer for the bar_index when we try to get a value using an if condition
+// bar = bar_index == 168
+// x1 = valuewhen(bar, bar_index, 0)
+// y1 = valuewhen(bar, high, 0)
+// plot(y1)
+// plot(x1)
+
+// if barstate.islast           // This one will draw one line after each real-time bar
+//     line.new(x1=x1, y1=y1, x2=bar_index, y2=high)       
+// if bar_index > 168              // This will draw a line for every bar after bar 168
+//     line.new(x1=168, y1=y1, x2=bar_index, y2=high)
+// ****************** EXAMPLE 4 END *****************
+
+
+// ****************** EXAMPLE 5 Offset Future *********************
+// oneBarOfTime = time - time[1]
+// i_offset = input(5, "Offset")
+// lineOffset = i_offset * oneBarOfTime
+// line.new(x1=time + lineOffset, y1=high , x2=time+ lineOffset*2, y2=high, xloc=xloc.bar_time)
+// ****************** EXAMPLE 6 END *****************
+
+
+// To see this in action switch to <= 1 minute TF and wait for new bar to open.
+// ****************** EXAMPLE 5a Single Future Wrong *********************
+// if barstate.islast
+//     offset = 5 * (time - time[1])
+//     line.new(x1=time, y1=high , x2=time+offset, y2=high, xloc=xloc.bar_time)
+// ****************** EXAMPLE 5 END *****************
+
+// NOTE: We need to remove the previous line, and the only way to do that is to create a reference we can modify.
+// In our previous examples we didn't have to remove any line because PS does this automatically for us after drawing about 50 lines.
+// NOTE: Notice how we don't check if barstate.islast here. That's because we don't need to when we delete the previous line every time.
+// ****************** EXAMPLE 5b Single Future Right *********************
+// offset = 40 *(time - time[1])
+// id = line.new(x1=time+offset, y1=high , x2=time+offset*2, y2=high, xloc=xloc.bar_time) // Draw a new label
+// line.delete(id[1])     // Delete last line
+// ****************** EXAMPLE 5 END *****************
+
+
+// ****************** EXAMPLE 5c Single Future Right Method 2 *********************
+// var line id = na
+// line.delete(id)                // Delete current line
+// offset = 40* (time - time[1])
+// id := line.new(x1=time, y1=high , x2=time+offset, y2=high, xloc=xloc.bar_time) // Draw a new line
+// ****************** EXAMPLE 5 END *****************
+
+// ****************** EXAMPLE 5d Single Future Right Method 3 *********************
+// offset = 40 * (time - time[1])
+// var line id = line.new(x1=time, y1=high , x2=time+offset, y2=high, xloc=xloc.bar_time)   // Instantiate a new line
+// line.set_x1(id, x=time)
+// line.set_x2(id, x=time+offset)
+// line.set_y1(id, y=high)
+// line.set_y2(id, y=high)
+// ****************** EXAMPLE 5 END *****************
+
+// ****************** EXAMPLE 6a Extensions *********************
+// if barstate.islast
+    // line.new(x1=bar_index[1], y1=low[1], x2=bar_index, y2=low, extend=extend.none)
+    // line.new(x1=bar_index[1], y1=low[1], x2=bar_index, y2=low, extend=extend.both)
+    // line.new(x1=bar_index[1], y1=low[1], x2=bar_index, y2=low, extend=extend.right)
+    // line.new(x1=bar_index[1], y1=low[1], x2=bar_index, y2=low, extend=extend.left)
+// ****************** EXAMPLE 6a END *****************
+
+// ****************** EXAMPLE 6b Extensions act strange when x1 and x2 are same and y values are not *********************
+// line.new(x1=bar_index, y1=low[4], x2=bar_index, y2=low, extend=extend.both)  // Decent technique for a vertical line.
+// plot(barstate.islast ? 1E99: na, style=plot.style_columns)   // A better technique for vertical lines is this though.
+// ****************** EXAMPLE 6a END *****************
+
+
+
+
+                // ---------------- LINE SETTERS & GETTERS ----------------
+// Setters --  Methods that set a value to a specified line
+// line.set_color()    — changes color of line
+// line.set_extend()   — changes attribute that makes:
+// line.set_style()    — changes style of line
+// line.set_width()    — changes width of line
+// line.set_xloc()     — changes x-location of line (both x1 and x2)
+// line.set_x1()       — changes x1-coordinate of line
+// line.set_y1()       — changes y1-coordinate of line
+// line.set_xy1()      — changes both x1 and y1 coordinates of line
+// line.set_x2()       — changes x2-coordinate of line
+// line.set_y2()       — changes y2-coordinate of line
+// line.set_xy2()      — changes both x2 and y2 coordinates of line at once
+
+// Getters -- Methods that Return a value from the specified Line
+// line.get_price()      - Returns the price level of a line at a given bar index.
+// line.get_x1()         - Returns UNIX time or bar index (depending on the last xloc value set) of the first point of the line
+// line.get_x2()         - Returns UNIX time or bar index (depending on the last xloc value set) of the second point of the line
+// line.get_y1()         - Returns price of the first point of the line
+// line.get_y2()         - Returns price of the second point of the line
+
+
+
+// ****************** CORE FOR EXAMPLES *********************
+// // Draws Max and Min lines for Available bars.
+// // Show max values
+// max = -1E99, min = 1E99
+// max := nz(max(high, max[1]), high)        // Compute highest high across every AVAILABLE bar
+// min := nz(min(low,  min[1]), low)          // Compute lowest low across every AVAILABLE bar
+
+// // Max Line
+// var line maxLine = line.new(bar_index[1], max, bar_index, max, extend=extend.none)
+// if change(max)                                  // If we get a new max, reset the points there
+//     line.set_xy1(maxLine, x=bar_index, y=max)
+//     line.set_y2(maxLine, y=max)
+// line.set_x2(maxLine, x=bar_index)               // Set the line end point on every bar to keep extending line.
+
+// // // Min Line
+// var line minLine = line.new(bar_index[1], min, bar_index, min, extend=extend.none)
+// if change(min)                                  // If we get a new min, reset the points there
+//     line.set_xy1(minLine, x=bar_index, y=min)
+//     line.set_xy2(minLine, x=bar_index, y=min)
+// line.set_x2(minLine, x=bar_index)               // Set the line end point on every bar to keep extending line.
+// ***************************************
+
+
+// Let's style up the Lines
+// https://www.tradingview.com/pine-script-docs/en/v4/essential/Drawings.html#line-styles
+// ***************************************
+// line.set_style(id=maxLine, style=line.style_dotted)
+// line.set_style(id=minLine, style=line.style_dotted)
+// line.set_width(id=maxLine, width=3)
+// line.set_width(id=minLine, width=3)
+// line.set_color(id=maxLine, color=color.green)
+// line.set_color(id=minLine, color=color.red)
+// // line.set_extend(id=maxLine, extend=extend.right)
+// ***************************************
+
+
+// Lets add a fibonnaci level. 382?
+// ***************************************
+// // Create line for fib level
+// var line line_382 = line.new(bar_index, na, bar_index, na, style=line.style_dashed)
+// // Compute Fib Level
+// three82 = max - (max-min)*0.382    
+// if change(min+max)
+//     line.set_xy1(line_382, x=bar_index, y=three82)
+//     line.set_xy2(line_382, x=bar_index, y=three82)
+// line.set_x2(line_382, x=bar_index)
+// // Create a Label for fib Level
+// var label label_382 = label.new(bar_index, na, text=".382", style=label.style_label_left, textalign=text.align_right, size=size.small, textcolor=color.white)
+// label.set_xy(label_382, bar_index, three82)
+// ***************************************
+
+
+// We can do the same thing, but with a differnt method.
+// ***************************************
+// // Create line for fib level
+// var line line_618 = line.new(bar_index, na, bar_index, na, style=line.style_dashed)
+// // Compute Fib Level
+// six18 = max - (max-min)*0.618   
+// line.set_xy1(line_618, x=change(min+max) ? bar_index : line.get_x1(line_618), y=six18)
+// line.set_xy2(line_618, x=change(min+max) ? bar_index : line.get_x1(line_618), y=six18)
+// line.set_x2(line_618, x=bar_index)
+// // Create a Label for fib Level
+// var label label_618 = label.new(bar_index, na, text=".618", style=label.style_label_left, textalign=text.align_right, size=size.small, textcolor=color.white)
+// label.set_xy(label_618, bar_index, six18)
+// ***************************************
+
+
+// Lets make the fib arrow line. Using getters
+// ***************************************
+// // Create line for fib arrow
+// var line line_fibarrow = line.new(bar_index, na, bar_index, na, width=3, style=line.style_arrow_right)
+// if change(min+max)
+//     line.set_xy1(line_fibarrow, x=line.get_x1(minLine), y=line.get_y1(minLine))
+//     line.set_xy2(line_fibarrow, x=line.get_x2(maxLine), y=line.get_y2(maxLine))
+// ***************************************
+
+ 
+ 
+ 
+                  // ---------------- LINE TRADES ----------------
+
+// ****************** CORE FOR EXAMPLES *********************
+// // Let's do a strategy with our indicator.
+// rsi      = rsi(close, 14)
+// goLong   = crossover(rsi, 30)
+// exitLong = crossunder(rsi, 70)
+// plotchar(goLong, char="B", location=location.belowbar, color=color.green)
+// plotchar(exitLong, char="S", color=color.red)
+
+// INITIALCAPITAL = 100000
+
+// var float netProfit     = na
+// var float openProfit    = na
+// var float positionSize  = na 
+// var float equity        = INITIALCAPITAL + nz(netProfit) + nz(openProfit)
+// qty                     = 1
+// qty_type                = "Percent"
+// tradeSize               = (qty / 100.0) * (equity - nz(openProfit))
+
+// var int entryBar        = na, var int exitBar = na, var float entryPrice = na, var float exitPrice = na
+// // ***************************************
+
+
+// // ***************************************
+// // Initialize Line
+// f_drawLine(_x1, _y1, _x2, _y2, _col) =>
+//      _id = line.new(_x1, _y1, _x2, _y2, style=line.style_arrow_right, color=_col)
+
+
+// if goLong and na(positionSize)
+//     entryPrice   := close
+//     entryBar     := bar_index
+//     positionSize := tradeSize / entryPrice
+
+
+// if exitLong and not na(positionSize)
+//     exitPrice := close
+//     exitBar   := bar_index
+//     netProfit := (positionSize * exitPrice) - (positionSize * entryPrice) 
+//     equity    := equity + netProfit
+
+// if not na(netProfit)
+//     f_drawLine(entryBar, entryPrice, exitBar, exitPrice, netProfit > 0 ? color.green : color.red)
+//     label.new(exitBar, exitPrice, yloc=yloc.abovebar, text="Net Profit: " + tostring(netProfit))
+    
+//     // Reset 
+//     netProfit    := na
+//     entryBar     := na
+//     entryPrice   := na
+//     exitBar      := na
+//     exitPrice    := na
+//     positionSize := na
+
+// // ***************************************
+ 
+
+ 
+ 
+
+// LINE HIGHLIGHTS
+// Lines are limited to around 500 line objects at any one time. (Default is 50, but can be set with max_lines_count parameter in study declaration)
+// Lines & Labels do not affect eachothers total object count. You can have 50 lines and 50 labels.
+// Lines are good for complex drawings.
+
+
+

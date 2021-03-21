@@ -1,0 +1,31 @@
+
+//@version=4
+study("DAAS PIVOT ", shorttitle="DAAS PIVOT", format=format.price, precision=0, overlay=true,max_labels_count=500)
+n = input(title="Periods", defval=20, minval=2, type=input.integer)
+
+int tempSPHIndex = 0
+
+for i=1 to n-1 by 1
+    if ((high[i] > high[i-1]) and (high[i] > high[i+1]))
+        if(bar_index-bar_index[i] >= 2)
+            tempSPHIndex := bar_index-i
+            break
+
+
+gapBetweenTempSPHAndBar = nz(bar_index-tempSPHIndex)
+
+
+var sphOUT = array.new_int(5)
+bool condition = false
+if(gapBetweenTempSPHAndBar >= 2)
+    for i=1 to gapBetweenTempSPHAndBar-1 by 1
+        for j=i+1 to gapBetweenTempSPHAndBar by 1
+            if( (high[j] > high[i]) and (high[i] > high[0]) and (close[j] > close[i]) and (close[i] > close[0]) )
+                array.push(sphOUT, tempSPHIndex)
+                
+
+
+
+m = array.size(sphOUT)-1
+if(array.get(sphOUT, m) != array.get(sphOUT, m)[1])
+    label.new(x=array.get(sphOUT, m),y=high,style=label.style_triangleup,color=color.olive,textcolor= color.olive,text="sph",yloc=yloc.abovebar)

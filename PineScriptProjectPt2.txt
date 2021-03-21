@@ -1,0 +1,53 @@
+// This source code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © Gammapips
+
+//@version=4
+study("My Script", overlay=true)
+
+// Inputs
+useRSI  = input(defval=true, title="Use Rsi", type=input.bool)
+useMACD = input(defval=true, title="Use macd", type=input.bool)
+useBB   = input(defval=true, title="Use BB", type=input.bool)
+i_showPLots = input(defval=true, title="Show Plots", type=input.bool)
+
+// RSI
+rsi = rsi(close, 14)
+// MACD
+[macdLine, signalLine, histLine] = macd(close, 12, 26, 9)
+// BB
+i_bb_isrc = input(defval=close, title="BB input source", type=input.source)
+i_bbLength =  input(defval=10, title="BB Length", type=input.integer)
+[middle, upper, lower] = bb(i_bb_isrc, i_bbLength, 2)
+
+// Rsi strategy
+rsibuyCondition = crossover(rsi, 30) and useRSI
+rsisellCondition = crossunder(rsi, 70) and useRSI
+plotshape(rsibuyCondition ? low : na, text='rsi buy', style=shape.arrowup, location=location.belowbar, color=color.green, textcolor=color.green, size=size.large)
+plotshape(rsisellCondition ? high : na, text='rsi sell', style=shape.arrowdown, location=location.abovebar, color=color.red, textcolor=color.red, size=size.large)
+
+// Macd Strategy 
+macdbuyCondition = histLine > 0 and crossover(macdLine, signalLine) and useMACD
+macdsellCondition = histLine < 0 and crossunder(macdLine, signalLine) and useMACD
+plotshape(macdbuyCondition ? close : na, text='macd buy', style=shape.arrowup, location=location.belowbar, color=color.green, textcolor=color.green, size=size.large)
+plotshape(macdsellCondition ? close : na, text='macd sell', style=shape.arrowdown, location=location.abovebar, color=color.red, textcolor=color.red, size=size.large)
+
+// BB Strat
+i_bbsrc = input(defval=close, title="BB strat source", type=input.source)
+bbbuyCondition = i_bbsrc < lower and useBB
+bbsellCondition =  i_bbsrc > upper and useBB
+plotshape(bbbuyCondition ? close : na, text='bb buy', style=shape.arrowup, location=location.belowbar, color=color.green, textcolor=color.green, size=size.large)
+plotshape(bbsellCondition ? close : na, text='bb sell', style=shape.arrowdown, location=location.abovebar, color=color.red, textcolor=color.red, size=size.large)
+
+// PLOTS
+plot(i_showPLots ? rsi : na, title='rsi', color=color.purple)
+plot(i_showPLots ? histLine : na, title="Histogram", style=plot.style_columns, color=histLine > 0 ? color.green : color.red )
+plot(i_showPLots ? macdLine : na, title="MACD", transp=0, color=color.red)
+plot(i_showPLots ? signalLine : na, title="Signal", transp=0, color=color.blue)
+plot(i_showPLots ? middle : na,title="bb middle", color=color.yellow)
+plot(i_showPLots ? upper : na,title="bb upper", color=color.red)
+plot(i_showPLots ? lower : na, title="bb lower", color=color.green)
+
+
+// alert conditions
+sellAlertConditions = bbsellCondition or macdsellCondition or rsisellCondition
+alertcondition(sellAlertConditions, title="sell alert")

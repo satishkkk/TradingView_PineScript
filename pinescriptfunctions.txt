@@ -1,0 +1,231 @@
+//@version=4
+study("Pine Script - Functions")
+
+// ---------------- OVERVIEW ----------------
+
+// WHAT ARE FUNCTIONS?
+// A function is just an identifier for a block of code.
+// When we find ourselves writing the same code over and over again, we can just create a function with that code once. 
+// And use the identifier to execute the code anytime we want.
+// We can even create custom arguments to be processed by our functions!
+// Functions help make our code cleaner and simpler. 
+
+
+
+// ---------------- SYNTAX ----------------
+
+// SINGLE LINE FUNCTION SYNTAX``
+// functionId() => expression_or_declaration
+
+// MULTI LINE FUNCTION SYNTAX
+// functionId(optional_arguments) =>
+    // expression_or_declaration
+
+
+// ---------------- FUNCTION EXAMPLES ----------------
+
+// BUILT IN FUNCTIONS
+// https://www.tradingview.com/pine-script-reference/v4/#fun_abs
+// study()      
+// plot()      // Plot
+// sma()       // Simple moving average
+// ema()       // Exponential Moving Average
+// rsi()       // Relative Strength Index
+
+
+// SINGLE LINE EXAMPLES
+
+// ****************** EXAMPLE 1 ********************
+functionName() => close                     // Declare a single line function with no arguments that returns the close
+plot(functionName())                        // Call that function and plot the result
+// ****************** EXAMPLE 1 END *****************
+
+
+// ****************** EXAMPLE 2 *********************
+// sumThese(argument1, argument2) => argument1 + argument2       // Declare a function that sums two values and returns the result
+// plot(sumThese(1, 2))                                          // Use the function to sum the integers 1 and 2.
+// ****************** EXAMPLE 2 END *****************
+
+
+// MULTI LINE EXAMPLES
+
+// ****************** EXAMPLE 1 *********************
+// funName() =>                                // Declare a multi line function with no arguments that returns the close
+    // close                                   // Return the close
+
+// plot(funName())                             // Call that function and plot the result
+// ****************** EXAMPLE 1 END *****************
+
+
+// ****************** EXAMPLE 2 *********************
+// sumThis(arg1, arg2) =>                      // Declagre a function that accepts two arguments
+//     arg1 + arg2                             // Sum the two values and return the result
+
+// result = sumThis(close, 2)
+// plot(result )                     // Call the function with a series[float] and a literal int as your positional arguments and plot the result
+// ****************** EXAMPLE 2 END *****************
+
+
+
+// --------- A NOTE ON ARGUMENTS, CUSTOM FUNCTIONS AND BUILT IN FUNCTIONS ---------
+// built in functions and custom functions are practically identical when it comes to semantics.
+// The only difference is in the arguments:
+
+// Their are two ways to declare an argument in a function call. By position or keyword
+// Built-in functions can use positional arguments AND keyword arguments
+// Custom Functions can use ONLY positional arguments.
+
+// For example:
+
+// keyword args look like this:
+// The keywords can be found in the reference manual (hover over the blue letters)
+// ***************************************
+// s = sma(source=close, length=14)    // This is the built in sma() being called with KEYWORD arguments "source" and "length". 
+// ***************************************
+
+// Where positional args look like this.
+// ***************************************
+// s2 = sma(14, close)                 // The names of the keywords can be omitted.
+// ***************************************
+
+// We can even mix keyword and positional args
+// If we do mix keywords and positional args we need to put the positional args BEFORE the keyword args.
+// ***************************************
+// s3 = sma(close, length=14)         // Notice the positional arguments come first.
+// ***************************************
+
+// Don't do this.
+// ***************************************
+// s4 = sma(source=close, 14)   // ERROR
+// ***************************************
+
+// Using keyword args with custom functions won't work either. Running this code will result in an ERROR
+// ***************************************
+// custFun(a, b) => a + b                      // Declare a customFunction that takes two arguments
+// result = custFun(a=1, b=2)                  // Call that custom function INCORRECTLY with keyword args
+// plot(result)                                // Try to plot the result. 
+// ***************************************
+
+
+
+// ---------------- SCOPE ----------------
+
+// Any variable declared within the code block of the function is only accessible within that function.
+// We refer to the code inside a function as having a LOCAL scope. 
+// Any variables defined outside of a function is considered part of the GLOBAL scope.
+// Global variables can be accessed within the local scope of a function.
+
+
+// ******************** SCOPE EXAMPLE 1 -- DECLARING LOCAL VARIABLES *******************
+// myCustomFunction(arg) =>
+//     localVar = arg + 1                      // We can declare local variables inside our function.
+//     localVar                                // The last line of our function will be returned. In this case it is 'localVar'
+
+// result = myCustomFunction(1)                // We call our function with an argument of 1 and save the result.
+// plot(result, title="Result should be 2")    // We plot the result
+// plot(localVar, title="This won't work")     // ERROR: Undeclared identifier 'localVar'
+// ******************** SCOPE EXAMPLE 1 END *******************
+
+
+// ******************** SCOPE EXAMPLE 2 -- USING GLOBAL VARS LOCALLY *******************
+// globalVar = 2                       // Define a global variable that can be used anywhere in the script.
+
+// myCustomFun(arg) =>                 // Define a function 
+//     localVar = arg + globalVar      // Do some simple calculations and declare a local variable. The local variable will be returned since its the last indented line
+
+// result = myCustomFun(1)             // Call the function with 1 as an argument
+// plot(result, title="Result should be 3")
+// ******************** SCOPE EXAMPLE 2 END *******************
+
+
+// ******************** SCOPE EXAMPLE 3 -- MODIFYING GLOBAL VARS LOCALLY ******************* Running this code will ERROR
+// count = 0
+// Counter() =>
+//     count :=  count + 1                 // ERROR: Cannot modify global variables in functions.
+
+// if close > open
+//     Counter()
+
+// plot(count, title="How many times the close was > than the high")
+// ******************** SCOPE EXAMPLE 3 END *******************
+
+
+// ******************** SCOPE EXAMPLE 4 -- BUILDING A COUNTER ******************* 
+// count = 0                                   // Declare the global count variable
+// count := nz(count[1], 0)                   // Reassign the count variable to the previous value. If it was na then change it to 0
+// Counter() =>
+//     if close > open
+//         count + 1
+//     else
+//         count
+
+// count := Counter()                  // Modify the global variable in the global scope.
+// plot(count, title="How many times the close was > than the high")   
+// ******************** SCOPE EXAMPLE 3 END *******************
+
+
+
+// ---------------- RETURNING MORE THAN ONE RESULT ----------------
+
+// In some case you may want to return more than one value from a function.
+// To do this we just need to surround our result in [] and separate each value with a comma. This needs to happen inside the function return and the call result
+
+
+// ******************** MULTIPLE RESULTS: EXAMPLE 1 *******************
+// fun() => [1, 2]                             // Declare the function and return enclosed variables. In this case '1' and '2'
+// [firstResult, secondResult] = fun()         // Call the function and store the results separatly in enclosed braces []
+
+// plot(firstResult, title='First Result')     // Plot the first result
+// plot(secondResult, title='Second Result')   // PLot the second result
+// ******************** MULTIPLE RESULTS: EXAMPLE 1 END *******************
+
+
+// ******************** MULTIPLE RESULTS: EXAMPLE 2 *******************
+// fun(arg1, arg2) =>                      // Declare the function and return enclosed variables.
+//     s = arg1 + arg2
+//     m = arg1 * arg2
+//     diff = s - m
+//     [ s, m, diff]
+
+// [s, m, difference] = fun(1, 2)          // Call the function and store the results separatly in enclosed braces []
+// plot(s, title='s')
+// plot(m, title='m')
+// plot(difference, title='difference')
+// ******************** MULTIPLE RESULTS: EXAMPLE 2 END *******************
+
+
+
+// ---------------- FUNCTION EXECUTION ----------------
+
+// Once a function is declared it exists in the global scope of the script. 
+// However, the function only runs when it is called within the script.
+// If a function is never called then it will never run.
+
+
+// ******************** FUNCTION EXECUTION: EXAMPLE 1 *******************
+// study("Pine Script - Functions", overlay=true)
+
+// previousValue(arg) => arg[1]        // This function returns the previous argument
+// previousClose() => close[1]         // This function returns the previous close
+
+// // plot(previousValue(close), color=color.red, offset=-1)      // Pass the close as an argument and we can expect the previous close to plot
+// // plot(previousClose(), color=color.white, offset=-1)         // By default the previous close is returned and plotted.
+
+// everyOtherBar = bar_index % 2 == 0                          // Returns a series[bool] that is true only on even bar_index
+// result1 = previousValue(close)
+// plot(everyOtherBar ? result1 : na, color=color.blue, offset=-1)        // Call the function once every other bar.
+// plot(everyOtherBar ? previousClose() : na, color=color.yellow, offset=-1)           // Call the function once every other bar.
+// ******************** MULTIPLE RESULTS: EXAMPLE 1 END *******************
+
+
+
+// FUNCTION HIGHLIGHTS
+// Functions have to be declared before you use them. (With the exception of built in functions)
+// Functions can call other functions, but they cannot call themselves. A concept known as recursion.
+// Functions can only be defined in the global scope only. You cannot define a function within a function.
+// Once a function has been declared it can be reused with different arguments.
+// The history of a local variable inside a function iterates on every function call.
+// Functions are only executed when they are called.
+// Functions can return multiple results.[]
+
+

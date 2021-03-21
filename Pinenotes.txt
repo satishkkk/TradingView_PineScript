@@ -1,0 +1,61 @@
+bar history and new : 
+https://www.tradingview.com/pine-script-docs/en/v4/essential/Bar_states_Built-in_variables_barstate.html
+
+switching line : https://in.tradingview.com/script/YpAfqZHr-Example-Switching-Line/
+
+
+plotarrow :
+https://www.tradingview.com/pine-script-docs/en/v4/annotations/Plotting_shapes_chars_and_arrows.html#plotarrow
+
+plot up arrow if seriws value is positive
+down arrow if value is negative
+
+plotshape(macdbuyCondition ? close : na, text='macd buy', style=shape.arrowup, location=location.belowbar, color=color.green, textcolor=color.green, size=size.large)
+plotshape(macdsellCondition ? close : na, text='macd sell', style=shape.arrowdown, location=location.abovebar, color=color.red, textcolor=color.red, size=size.large)
+
+plotshape(bbbuyCondition ? close : na, text='bb buy', style=shape.arrowup, location=location.belowbar, color=color.green, textcolor=color.green, size=size.large)
+plotshape(bbsellCondition ? close : na, text='bb sell', style=shape.arrowdown, location=location.abovebar, color=color.red, textcolor=color.red, size=size.large)
+
+
+Lecture : 38 -
+// ******************** SCOPE EXAMPLE 4 -- BUILDING A COUNTER ******************* 
+// count = 0                                   // Declare the global count variable
+// count := nz(count[1], 0)                   // Reassign the count variable to the previous value. If it was na then change it to 0
+// Counter() =>
+//     if close > open
+//         count + 1
+//     else
+//         count
+
+// count := Counter()                  // Modify the global variable in the global scope.
+// plot(count, title="How many times the close was > than the high")   
+// ******************** SCOPE EXAMPLE 3 END *******************
+
+lecture 42 : 
+var -> to store the variable count
+
+
+label : 
+
+var label id = na
+label.delete(id)   // Delete last label
+i_offsetLabel = input(5, "Data Dashboard Offset") 
+
+offset = i_offsetLabel * (time - time[1])
+dynamicText = "========== Data Dashboard ========="
+id := label.new(x=time+offset, y=high, xloc=xloc.bar_time, text=dynamicText)
+
+
+dynamicText := dynamicText + "\n" + "UPDATE"
+label.set_text(id=id, text=dynamicText)
+
+dynamicText := dynamicText + "\nClose: " + tostring(close)
+label.set_text(id=id, text=dynamicText)
+
+
+-----------------DEBUGING-----------------------
+id = label.new(x=bar_index,y=high,style=label.style_circle,color=color.yellow)
+label.set_text(id=id, text=upflagDownFrontier ? "true" : "false")
+
+plot(upFractal?high:low,title='Upper Band',color=#3c94b8,linewidth=5)
+plot(bar_index+7000,title="bar index")

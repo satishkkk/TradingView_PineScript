@@ -1,0 +1,309 @@
+//@version=4
+study("Decision Making - Conditional Statements - IF/THEN/ELSE")
+
+// Decisions in programming happens when there is more than one path of logic for the code to follow. In order to follow the correct path of logic
+// We will need to learn how to identify what conditions must be present in order to execute a certain choice. 
+// Then we will need to program what happens for each choice.
+// 
+// There are 3 ways to program decisions in Pine Script. These are also referred to as conditional statements/expressions or IF THEN statements.
+// Ternary operator
+// Iff function
+// If Statement
+
+
+
+//  ----------------- THE TERNARY OPERATOR --------------
+// Check if a condition is true or false and then decide on a specific outcome dependent on the result.
+
+// Syntax
+// ?:
+// if ? then : else
+// identifer = boolean_condition ? exprIfTrue : exprIfFalse
+
+
+// EXAMPLE 1:
+// If the close is greater than open then buy; else sell. Where buy=true and sell=false
+// ***************************
+// buysell_ter  = close > open ? true : false    // buysell_ter identifier will now contain either "true" or "false" in a series[bool]
+// ***************************
+
+
+// EXAMPLE 2:
+// We can expand on this simple example by turning each bit of logic into a separate component.
+// ***************************
+// condition = close > open
+// if_conditionIsTrue = "buy"
+// if_conditionIsFalse = "sell"
+// buy_or_sell_seriesString = condition ? if_conditionIsTrue : if_conditionIsFalse   // In this case our results will be a series of text
+// buy_or_sell_position_size = (buy_or_sell_seriesString == "buy") ? 100 : -100    // We can use the result of the first ternary as the condition for another.
+// plot(buy_or_sell_position_size, title="buy_or_sell_position_size")
+// ***************************
+
+
+// EXAMPLE 3:
+// The ternary operator can contain more than one statement
+// ***************************
+// color_input = input(defval="blue", title="Pick a color - ?: ", type=input.string, options=["green", 'red', 'white', 'blue', 'purple'])
+// color_selector = ( color_input == "green" ) ? color.green : 
+//                  color_input == "red" ? color.red :
+//                  color_input == "white" ? color.white :
+//                  color_input == "blue" ? color.blue : 
+//                  color_input == "purple" ? color.purple : na
+// plot(close, color=color_selector, editable=true)      // Set editable to false or the color selections will overcrowd the style tab.
+// ***************************
+
+
+
+//  ----------------- IFF FUNCTION --------------
+// iff does exactly the same thing as ternary conditional operator ?: but in a functional style. 
+// iff() is slightly less efficient than operator ?:
+
+// Syntax
+// identifer = iff(condition = boolean_condition, then = exprIfTrue, _else=exprIfFalse)
+
+
+// EXAMPLE 1:
+// If the close is greater than open then buy; else sell. Where buy=true and sell=false
+// ***************************
+// buysell_iff  = iff(close > open, true, false)    // buysell_ff identifier will now contain either "true" or "false" in a series[bool]
+// ***************************
+
+
+// EXAMPLE 2:
+//  Similar to the ternary example...
+//  We can expand on this simple example by turning each bit of logic into a separate component.
+// ***************************
+// if_condition = close > open
+// then_branch = 100    // aka true branch
+// else_branch = -100   // aka false branch
+// condition_result = iff(if_condition, then_branch, else_branch)
+// plot(condition_result, title="iff condition", color=color.yellow)
+// condition_result2 = iff(close > open, color.green, na)   // if we don't need an "else" branch we can just use na.
+// bgcolor(condition_result2)
+// ***************************
+
+
+// EXAMPLE 3:
+// We can even do long multi conditional statements like in the ternary example.
+// ***************************
+// color_input_iff = input(defval="purple", title="Pick a color - iff()", type=input.string, options=["green", 'red', 'white', 'blue', 'purple'])
+// color_selector_iff = iff(color_input_iff == "green", color.green, 
+//                      iff(color_input_iff == "red", color.red,
+//                      iff(color_input_iff == "white", color.white,
+//                      iff(color_input_iff == "blue", color.blue,
+//                      iff(color_input_iff == "purple", color.yellow, na)))))
+
+// plot(close, color=color_selector_iff, editable=false)    // Set editable to false or the color selections will overcrowd the style tab.
+// ***************************
+
+
+
+//  ----------------- IF STATEMENT --------------
+// The if statement is the 3rd condtional operator available in Pine Script.
+// Like the first two, its purpose and use case is identical.
+
+// Syntax
+// identifier = if condition
+//     exprIfTrue
+// else 
+//     exprIfFalse
+
+
+// EXAMPLE 1:
+// If the close is greater than open then buy; else sell. Where buy=true and sell=false
+// ***************************
+// buysell_if = if close > open   
+//     true
+// else
+//     false
+// ***************************
+
+
+// EXAMPLE 2:
+// You can assign the branch result to a variable.
+// ***************************
+// condition   = close > open
+// exprIfTrue  = color.yellow
+// exprIfFalse = color.white
+
+// _bgcolor = if condition   // Test condition. In this case the condition will be: Is close is greater than open?
+//     exprIfTrue            // If its True then color.yellow is assigned to "bgcolor" identifer
+// else
+//     exprIfFalse           // Else color.white is assigned to "bgcolor" identifier
+    
+// barcolor(_bgcolor)        // We can use the barcolor function with the conditional identifier to visualize the if condition.
+// ***************************
+
+
+// EXAMPLE 3A:
+// We can even do long multi conditional statements like with the previous examples.
+// ***************************
+// color_input_if = input(defval="blue", title="Pick a color - if Example 3A", type=input.string, options=["green", 'red', 'white', 'blue', 'purple'])
+// color_selector_if = if (color_input_if == "green")
+//     color.green
+// else
+//     if color_input_if == "red"
+//         color.red
+//     else
+//         if color_input_if == "white"
+//             color.white
+//         else
+//             if color_input_if == "blue"
+//                 color.blue
+//             else
+//                 if color_input_if == "purple"
+//                     color.purple
+//                 else
+//                     na
+
+// plot(close, color=color_selector_if, editable=false)    // Set editable to false or the color selections will overcrowd the style tab.
+// ***************************
+
+
+// EXAMPLE 3B:
+// Same as above, but with the newest changes to Pine Script. Use this instead, but expect to see the former in older scripts.
+// ***************************
+// color_input_if = input(defval="green", title="Pick a color - if Example 3B", type=input.string, options=["green", 'red', 'white', 'blue'])
+// color_selector_if = if color_input_if == "green"
+//     color.green
+// else if color_input_if == "red"
+//     color.red
+// else if color_input_if == "white"
+//     color.white
+// else if color_input_if == "blue"
+//     color.blue
+// else
+//     na
+
+// plot(close, color=color_selector_if, editable=false)    // Set editable to false or the color selections will overcrowd the style tab.
+// ***************************
+
+
+// EXAMPLE 4
+// We don't need to assign directly, but can use the branch expressions to reassign variables if the condition is met.
+// In this example we need to initialize our variable first.
+// ***************************
+// color_change = color(na)
+// if close > open
+    // color_change := color.orange
+
+// plot(close, color=color_change, title='Example 4 - Reassigning a known variable')
+// ***************************
+
+
+
+//  ------- BRING IT ALL TOGETHER --------
+// Bringing everything together side by side so you can compare and contrast.
+
+
+// EXAMPLE 1
+// ***************************
+// a = close > open ? 1 : 0     // ternary operator
+// b = iff(close > open, 1, 0)  // iff() function
+// c = if close > open          // if operator
+//     1
+// else
+//     0
+
+// // // // Check if the results are equal
+// // abcIsSame = a == b and a == c    // If a == b and a == c then b == c
+// // plot(abcIsSame ? 99 : -99, title="abcIsSame?")
+// plot(a, title="a - ?: ternary operator")
+// plot(b, title="b - iff() function")
+// plot(c, title="c - if operator")
+// ***************************
+
+
+// A quick lesson on equality. 
+// Notice how I didn't just compare the above like so
+// abcIsSame = a == b == c
+// // ^^^ This would result in a different result. Because a == b becomes "true". Then "true" is compared to c. true == c 
+// // ***************************
+// plot(a == b ? 1 : 0, title="a == b" )
+// plot(a == c ? 1 : 0, title="a == c" )
+// plot(b == c ? 1 : 0, title="b == c" )
+// plot(abcIsSame ? 1 : 0, title="a == b == c" )   // Wrong way to compare
+// plot(a == b and b == c ? 1 : 0, title="a == b and a == c" )   // Right way to compare
+// s = 0 == true
+// plot(s ? 1 : 0)
+// ***************************
+
+
+// EXAMPLE 1B -- Extra Warning on comparisons -- You can't compare na values.
+// In this similar example a,b,c will still be identical. BUT this time instead of returning a 0 for false conditions, a "na" variable will be returned instead.
+
+// ***************************
+// a_na = close > open ? 1 : na     // ternary operator
+// b_na = iff(close > open, 1, na)  // iff() function
+// c_na = if close > open           // if operator
+    // 1
+
+// Check if the results are equal, but this time compare na values.
+// abcIsSame_na = a_na == b_na and a_na == c_na    // If a == b and a == c then b == c
+// plot(abcIsSame_na ? 1 : 0, title="abcIsSame_na?")
+// plot(a_na, title="a_na - ?: ternary operator")
+// plot(b_na, title="b_na - iff() function")
+// plot(c_na, title="c_na - if operator")
+// ***************************
+
+
+
+// ------------- COMMON MISTAKES ---------------
+
+// MISTAKE 1
+// Trying to use output functions in conditional statements
+// ***************************
+// if close > open   // ERROR
+    // plot(high)
+    
+// if close > open   // ERROR
+//     barcolor(color.yellow)
+
+// if close > open   // ERROR
+//     plotcandle(open, high, low, close)
+
+// youcantdothis = close > open ? plot(close, color=color.green) : plot(close, color=color.red)   // Error
+// youcantdothis_either = iff(close > open, plot(close), plot(open))   // Error
+// ***************************
+
+
+// SOLUTION 1
+// Simply assign the variable to an identifier and work with it separately.
+// ***************************
+// plot_high = if close > open   // FIXED
+//     high
+// plot(plot_high, title="Plots high if close > open else na")
+
+// youcandothis = close > open ? color.green : color.red    // FIXED
+// plot(close, color=youcandothis, title="youcandothis")
+// ***************************
+
+
+// MISTAKE 2
+// Assigning different variable forms between branches.
+// ***************************
+// thiswillerror2 = close > open ? na : color.yellow   // ERROR. Must be the same type
+// thiswillerror3 = close > open ? false : na   // ERROR. Must be the same type
+// ***************************
+
+// SOLUTION 2
+// Just make sure the types are the same.
+// ***************************
+// thiswillNOTerror = close > open ? color.orange : color.yellow
+// thiswillalsoNOTerror = close > open ? 1.2 : close    // The forms can even be different. This still works even the we have a literal float and a series[float]
+// ***************************
+
+
+
+// TAKEAWAY NOTES
+// You can use any method you choose. 
+// The ?: is more efficient than the iff() function
+// The iff() function is probably the least popular in PS, but it is still used.
+// Don't compare na results.
+// Don't use plot, barcalor, bgcolor in conditional branches
+// Return the same type of data.
+
+
+// ***************************
+plot(na, title="Ignore me. I do nothing.")   // Null plot for showing examples.
+// ***************************
